@@ -6,13 +6,17 @@ const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
+const middleware = require('./auth/auth.middlewares');
+const auth = require('./auth/auth.routes');
 const contactus = require('./api/contactus');
-
+const joinus = require('./api/joinus');
+const admin  = require('./admin/admin.routes');
 
 app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 app.use(helmet());
+app.use(middleware.checkTokenSetUser);
 
 app.get('/', (req,res) => {
     res.json({
@@ -21,6 +25,15 @@ app.get('/', (req,res) => {
 });
 
 app.use('/contactus',contactus);
+app.use('/joinus',joinus);
+app.use('/auth',auth);
+
+app.use(
+  '/admin',
+  middleware.isLoggedIn,
+  middleware.isAdmin,
+  admin
+)
 
 function notFound(req, res, next) {
     res.status(404);
